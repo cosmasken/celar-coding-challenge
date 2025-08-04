@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Stack, router } from 'expo-router';
 import axios from 'axios';
 import { StatusBar } from 'expo-status-bar';
+import { useToast } from '../../context/ToastContext';
 import 'nativewind';
 
 const API_URL = 'http://localhost:3000'; // Replace with your backend API URL
@@ -12,12 +13,49 @@ export default function SignupScreen() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('dev'); // Default role
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const { showToast } = useToast();
+  
+  // Validate email format
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+  
+  // Clear validation errors when inputs change
+  useEffect(() => {
+    if (email) setEmailError('');
+  }, [email]);
+  
+  useEffect(() => {
+    if (password) setPasswordError('');
+  }, [password]);
 
   const handleSignup = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password');
-      return;
+    // Reset errors
+    setEmailError('');
+    setPasswordError('');
+    let hasError = false;
+    
+    // Validate inputs
+    if (!email) {
+      setEmailError('Email is required');
+      hasError = true;
+    } else if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+      hasError = true;
     }
+    
+    if (!password) {
+      setPasswordError('Password is required');
+      hasError = true;
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      hasError = true;
+    }
+    
+    if (hasError) return;
     
     setIsLoading(true);
     
@@ -27,12 +65,23 @@ export default function SignupScreen() {
         password,
         role, // Use the selected role
       });
-      Alert.alert('Success', response.data.message, [
-        { text: 'OK', onPress: () => router.replace('/(auth)/login') }
-      ]);
-    } catch (err) {
+      showToast({
+        message: response.data.message || 'Account created successfully!',
+        type: 'success',
+        position: 'top'
+      });
+      
+      // Navigate to login after a short delay
+      setTimeout(() => {
+        router.replace('/(auth)/login');
+      }, 1500);
+    } catch (err: any) {
       console.error(err);
-      Alert.alert('Error', err.response?.data?.message || 'Failed to sign up. Please try again.');
+      showToast({
+        message: err.response?.data?.message || 'Failed to sign up. Please try again.',
+        type: 'error',
+        position: 'top'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +104,7 @@ export default function SignupScreen() {
         
         <Text className="text-base font-semibold mb-2 text-text-secondary">Email</Text>
         <TextInput
-          className="h-[50px] border border-gray-200 rounded-lg mb-5 px-3 text-base bg-white text-text-primary"
+          className={`h-[50px] border ${emailError ? 'border-red-500' : 'border-gray-200'} rounded-lg mb-1 px-3 text-base bg-white text-text-primary`}
           placeholder="Enter your email"
           placeholderTextColor="#999"
           value={email}
@@ -64,16 +113,18 @@ export default function SignupScreen() {
           autoCapitalize="none"
           autoCorrect={false}
         />
+        {emailError ? <Text className="text-red-500 text-xs mb-3">{emailError}</Text> : <View className="mb-4" />}
         
         <Text className="text-base font-semibold mb-2 text-text-secondary">Password</Text>
         <TextInput
-          className="h-[50px] border border-gray-200 rounded-lg mb-5 px-3 text-base bg-white text-text-primary"
+          className={`h-[50px] border ${passwordError ? 'border-red-500' : 'border-gray-200'} rounded-lg mb-1 px-3 text-base bg-white text-text-primary`}
           placeholder="Enter your password"
           placeholderTextColor="#999"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
+        {passwordError ? <Text className="text-red-500 text-xs mb-3">{passwordError}</Text> : <View className="mb-4" />}
         
         <Text className="text-base font-semibold mb-2 text-text-secondary">Role</Text>
         <View className="flex-row justify-between mb-5">

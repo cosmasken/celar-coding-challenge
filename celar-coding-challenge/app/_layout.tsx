@@ -8,6 +8,7 @@ import 'nativewind';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider } from '../context/AuthContext';
+import { ToastProvider } from '../context/ToastContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -23,7 +24,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthProvider>
-        <Slot />
+        <ToastProvider>
+          <Slot />
+        </ToastProvider>
       </AuthProvider>
       <StatusBar style="auto" />
     </ThemeProvider>

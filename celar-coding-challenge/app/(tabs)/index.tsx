@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, useWindowDimensions } from 'react-native';
 import { Stack } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { Ionicons } from '@expo/vector-icons';
 import 'nativewind';
 
@@ -33,6 +34,7 @@ interface QuickAction {
 
 export default function HomeScreen() {
   const { userToken, userProfile, signOut } = useAuth();
+  const { showToast } = useToast();
   const [balances] = useState<AccountBalance[]>([
     { currency: 'USD', amount: 5280.42 },
     { currency: 'EUR', amount: 1250.00 },
@@ -50,28 +52,28 @@ export default function HomeScreen() {
       name: 'Send', 
       icon: 'paper-plane', 
       color: 'bg-blue-500', 
-      action: () => console.log('Navigate to send') 
+      action: () => showToast({ message: 'Navigating to send', type: 'info', position: 'bottom' }) 
     },
     { 
       id: 'receive', 
       name: 'Receive', 
       icon: 'download', 
       color: 'bg-green-500', 
-      action: () => console.log('Navigate to receive') 
+      action: () => showToast({ message: 'Receive feature coming soon', type: 'info', position: 'bottom' }) 
     },
     { 
       id: 'exchange', 
       name: 'Exchange', 
       icon: 'repeat', 
       color: 'bg-purple-500', 
-      action: () => console.log('Navigate to exchange') 
+      action: () => showToast({ message: 'Exchange feature coming soon', type: 'info', position: 'bottom' }) 
     },
     { 
       id: 'pay', 
       name: 'Pay', 
       icon: 'card', 
       color: 'bg-orange-500', 
-      action: () => console.log('Navigate to pay') 
+      action: () => showToast({ message: 'Pay feature coming soon', type: 'info', position: 'bottom' }) 
     }
   ];
 
